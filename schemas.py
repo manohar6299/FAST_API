@@ -5,9 +5,13 @@ from typing import Optional , List
 class UserCreate(BaseModel):
     username: str
     email: str
+    password: str
+    conform_password:str
     referred_by: Optional[str] = None
 
-
+class Signin(BaseModel):
+    login: str  # username ya email dono aa sakta hai
+    password: str
 class SubscriptionCreate(BaseModel):
     user_id: int
     amount: float
