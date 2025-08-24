@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import Base, User
-from schemas import UserCreate, SubscriptionCreate
+from schemas import UserCreate, SubscriptionCreate, Signin
 import crud
+import  models
+
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -19,7 +21,36 @@ def get_db():
 # Register User only
 @app.post("/register/")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    return crud.create_user(db, user)
+    
+   existing_user = db.query(models.User).filter(
+        (models.User.username == user.username) | (models.User.email == user.email)
+    ).first()
+   
+   if existing_user:
+        return {"message": f"User '{user.username}' is already registered"}
+
+   new_user = crud.create_user(db, user)
+    
+   if new_user:
+        return {"message": f"User '{user.username}' registered successfully"}
+   else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Registration failed"
+        )
+        
+        
+        
+@app.post("/signin")
+def signin(data: Signin, db: Session = Depends(get_db)):
+    user = db.query(User).filter((User.username == data.login) | (User.email == data.login)).first()
+    if user.password != user.conform_password:
+         raise HTTPException(status_code=400, detail="Passwords do not match")
+    # return {"message": "Login successful", "user_id": user.id}
+    return {"message": "Login successful", "user_name": user.username,  "user_id": user.id}
+
+
+
 
 # Subscribe (user must already be registered)
 @app.post("/subscribe/")

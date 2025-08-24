@@ -9,6 +9,8 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True)
+    password=Column(String, unique=True)
+    conform_password=Column(String, unique=True)
     referral_code = Column(String, unique=True)
     referred_by = Column(String, ForeignKey('users.referral_code'), nullable=True)
     level = Column(String, default='Basic')
